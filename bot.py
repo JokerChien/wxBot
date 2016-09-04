@@ -160,15 +160,15 @@ def main():
     # print us
     # print us.encode("utf-8")
 
-    tables = excel_table_byindex()
-    for row in tables:
-        print row
+    # tables = excel_table_byindex()
+    # for row in tables:
+    #     print row
 
-    # bot = TulingWXBot()
-    # bot.DEBUG = True
-    # bot.conf['qr'] = 'png'
-    #
-    # bot.run()
+    bot = TulingWXBot()
+    bot.DEBUG = True
+    bot.conf['qr'] = 'png'
+
+    bot.run()
 
 if __name__ == '__main__':
     main()
