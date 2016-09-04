@@ -4,7 +4,57 @@
 from wxbot import *
 import ConfigParser
 import json
+import xlrd
+import xdrlib,sys,os
 
+def open_excel(file= 'file.xls'):
+    try:
+        data = xlrd.open_workbook(file)
+        return data
+    except Exception,e:
+        print str(e)
+
+#根据索引获取Excel表格中的数据   参数:file：Excel文件路径     colnameindex：表头列名所在行的所以  ，by_index：表的索引
+def excel_table_byindex(file= 'file.xls',colnameindex=0,by_index=0):
+    data = open_excel(file)
+    table = data.sheets()[by_index]
+    nrows = table.nrows #行数
+    ncols = table.ncols #列数
+    colnames =  table.row_values(colnameindex)  #表头所在行的数据
+
+    list =[]    #返回一个数组
+    for rownum in range(1,nrows):
+
+        row = table.row_values(rownum)
+
+        list.append(row)
+        # print row
+        if row:
+            app = {}
+            for i in range(len(colnames)):
+                # app[colnames[i]] = row[i]
+                app[colnames[i]] = unicode(row[i])
+                # app[colnames[i]] = repr(row[i])
+                # app[colnames[i]] = row[i].encode("utf-8")
+        list.append(app)
+    return list
+
+#根据名称获取Excel表格中的数据   参数:file：Excel文件路径     colnameindex：表头列名所在行的所以  ，by_name：Sheet1名称
+# def excel_table_byname(file= 'file.xls',colnameindex=0,by_name=u'Sheet1'):
+#     data = open_excel(file)
+#     table = data.sheet_by_name(by_name)
+#     nrows = table.nrows #行数
+#     colnames =  table.row_values(colnameindex) #某一行数据
+#     list =[]
+#     for rownum in range(1,nrows):
+#          row = table.row_values(rownum)
+#          if row:
+#              app = {}
+#              for i in range(len(colnames)):
+#                 app[colnames[i]] = row[i]
+#                 # app[colnames[i]] = row[i].encode("utf-8")
+#              list.append(app)
+#     return list
 
 class TulingWXBot(WXBot):
     def __init__(self):
@@ -60,11 +110,22 @@ class TulingWXBot(WXBot):
                     self.robot_switch = True
                     self.send_msg_by_uid(u'[Robot]' + u'机器人已开启！', msg['to_user_id'])
 
+    def auto_league_table(self,msg):
+        msg_data = msg['content']['data']
+        cmd=[u'-rating',u'-r']
+        tables = excel_table_byindex()
+        for row in tables:
+            print row
+            self.send_msg_by_uid(unicode(row), msg['user']['id'])
+
+
     def handle_msg_all(self, msg):
         if not self.robot_switch and msg['msg_type_id'] != 1:
             return
         if msg['msg_type_id'] == 1 and msg['content']['type'] == 0:  # reply to self
             self.auto_switch(msg)
+        elif msg['content']['data'] == u'榜单':  # reply to self
+            self.auto_league_table(msg)
         elif msg['msg_type_id'] == 4 and msg['content']['type'] == 0:  # text message from contact
             self.send_msg_by_uid(self.tuling_auto_reply(msg['user']['id'], msg['content']['data']), msg['user']['id'])
         elif msg['msg_type_id'] == 3 and msg['content']['type'] == 0:  # group text message
@@ -95,13 +156,19 @@ class TulingWXBot(WXBot):
 
 
 def main():
-    bot = TulingWXBot()
-    bot.DEBUG = True
-    bot.conf['qr'] = 'png'
+    # us = u'\u597d\u73a9'
+    # print us
+    # print us.encode("utf-8")
 
-    bot.run()
+    tables = excel_table_byindex()
+    for row in tables:
+        print row
 
+    # bot = TulingWXBot()
+    # bot.DEBUG = True
+    # bot.conf['qr'] = 'png'
+    #
+    # bot.run()
 
 if __name__ == '__main__':
     main()
-
